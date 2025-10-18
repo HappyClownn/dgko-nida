@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Zap } from "lucide-react";
+import AnimatedTitle from "@/components/AnimatedTitle";
 
 interface GameHeaderProps {
   currentRound: number;
@@ -25,9 +26,7 @@ export default function GameHeader({
           <Zap className="w-7 h-7 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold">
-            Fotoğraf Tahmin
-          </h1>
+          <AnimatedTitle className="text-2xl md:text-3xl font-display font-bold" />
           {gameCode && (
             <p className="text-sm text-muted-foreground">
               Oyun Kodu: <span className="font-mono font-bold">{gameCode}</span>

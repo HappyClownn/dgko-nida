@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Zap, Users } from "lucide-react";
+import AnimatedTitle from "@/components/AnimatedTitle";
 
 interface JoinGameFormProps {
   onJoin?: (name: string, gameCode: string) => void;
@@ -39,9 +40,7 @@ export default function JoinGameForm({ onJoin }: JoinGameFormProps) {
               <Zap className="w-10 h-10 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-display font-black bg-gradient-to-r from-primary to-game-celebration bg-clip-text text-transparent">
-            Fotoğraf Tahmin
-          </h1>
+          <AnimatedTitle className="text-4xl md:text-5xl font-display font-black" />
           <p className="text-muted-foreground mt-2 text-lg">
             Yakınlaştırılmış fotoğrafları tahmin et!
           </p>
