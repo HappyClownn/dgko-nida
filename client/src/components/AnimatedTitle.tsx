@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const titles = [
-  "Niba Tahmin",
+  "Nida Tahmin",
   "Oyun adı bulması çok zor",
   "Devine la photo",
   "Foto Tahmin",
+  "Eğer kimse isim önermediyse burayı böyle bırakcam",
 ];
 
 interface AnimatedTitleProps {
