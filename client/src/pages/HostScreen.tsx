@@ -1,125 +1,246 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import GameHeader from "@/components/GameHeader";
 import PhotoDisplay from "@/components/PhotoDisplay";
 import AnswerGrid from "@/components/AnswerGrid";
 import PlayerLobby from "@/components/PlayerLobby";
 import Leaderboard from "@/components/Leaderboard";
+import WaitingLobby from "@/components/WaitingLobby";
+import ResultsScreen from "@/components/ResultsScreen";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ZoomIn } from "lucide-react";
+import { sampleQuestions } from "@shared/sampleQuestions";
+import type { Player, Question } from "@shared/schema";
 
-//todo: remove mock functionality - Replace with real WebSocket data
-const MOCK_GAME_DATA = {
-  gameCode: "ABC123",
-  currentRound: 2,
-  totalRounds: 5,
-  currentZoomLevel: 3,
-  maxZoomLevel: 5,
-  points: [1000, 750, 500, 250, 100],
-  imageUrl: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800",
-  answers: [
-    { id: "1", text: "Eiffel Kulesi", letter: "A" as const },
-    { id: "2", text: "Kız Kulesi", letter: "B" as const },
-    { id: "3", text: "Big Ben", letter: "C" as const },
-    { id: "4", text: "Galata Kulesi", letter: "D" as const },
-  ],
-  correctAnswer: "4",
-  players: [
-    { id: "1", name: "Ahmet Yılmaz", hasAnswered: true, score: 2750, rank: 1 },
-    { id: "2", name: "Ayşe Demir", hasAnswered: true, score: 2500, rank: 2 },
-    { id: "3", name: "Mehmet Kaya", hasAnswered: false, score: 2250, rank: 3 },
-    { id: "4", name: "Zeynep Çelik", hasAnswered: false, score: 1750, rank: 4 },
-    { id: "5", name: "Can Aydın", hasAnswered: true, score: 1500, rank: 5 },
-    { id: "6", name: "Elif Şahin", hasAnswered: false, score: 1250, rank: 6 },
-  ],
-};
+type GamePhase = 'waiting' | 'lobby' | 'playing' | 'results' | 'finished';
 
 export default function HostScreen() {
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [showResults, setShowResults] = useState(false);
-  const answeredCount = MOCK_GAME_DATA.players.filter((p) => p.hasAnswered).length;
+  const { isConnected, send, on } = useWebSocket();
+  const [gameCode, setGameCode] = useState<string>('');
+  const [hostId, setHostId] = useState<string>('');
+  const [phase, setPhase] = useState<GamePhase>('waiting');
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [currentZoomLevel, setCurrentZoomLevel] = useState(4);
+  const [currentRound, setCurrentRound] = useState(0);
+  const [totalRounds] = useState(sampleQuestions.length);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [correctAnswer, setCorrectAnswer] = useState<string>('');
 
-  const handleNextZoom = () => {
-    if (zoomLevel < MOCK_GAME_DATA.maxZoomLevel) {
-      setZoomLevel((prev) => prev + 1);
+  // Create game on mount
+  useEffect(() => {
+    if (isConnected && !gameCode) {
+      send({
+        type: 'create_game',
+        questions: sampleQuestions,
+      });
+    }
+  }, [isConnected, gameCode, send]);
+
+  // Handle WebSocket messages
+  useEffect(() => {
+    const unsubscribe = on('host', (message) => {
+      switch (message.type) {
+        case 'game_created':
+          setGameCode(message.gameCode);
+          setHostId(message.hostId);
+          setPhase('lobby');
+          break;
+
+        case 'player_joined':
+          setPlayers(message.players);
+          break;
+
+        case 'game_started':
+          setPhase('playing');
+          setCurrentQuestion(message.question);
+          setCurrentZoomLevel(message.currentZoomLevel);
+          setCurrentRound(prev => prev + 1);
+          setAnsweredCount(0);
+          break;
+
+        case 'zoom_decreased':
+          setCurrentZoomLevel(message.currentZoomLevel);
+          break;
+
+        case 'answer_submitted':
+          setAnsweredCount(message.answeredCount);
+          break;
+
+        case 'round_results':
+          setPlayers(message.players);
+          setCorrectAnswer(message.correctAnswer);
+          setPhase('results');
+          break;
+
+        case 'game_finished':
+          setPlayers(message.finalScores);
+          setPhase('finished');
+          break;
+      }
+    });
+
+    return unsubscribe;
+  }, [on]);
+
+  const handleStartGame = () => {
+    send({
+      type: 'start_game',
+      gameCode,
+    });
+  };
+
+  const handleDecreaseZoom = () => {
+    if (currentZoomLevel > 1) {
+      send({
+        type: 'decrease_zoom',
+        gameCode,
+      });
     }
   };
 
-  const handleShowResults = () => {
-    setShowResults(true);
+  const handleNextRound = () => {
+    send({
+      type: 'next_round',
+      gameCode,
+    });
   };
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-display mb-2">Bağlanıyor...</div>
+          <div className="text-muted-foreground">WebSocket bağlantısı kuruluyor</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'waiting') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-display mb-2">Oyun Oluşturuluyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'lobby') {
+    return (
+      <WaitingLobby
+        players={players}
+        gameCode={gameCode}
+        isHost={true}
+        onStartGame={handleStartGame}
+      />
+    );
+  }
+
+  if (phase === 'results' && currentQuestion) {
+    return (
+      <ResultsScreen
+        players={players.map((p, idx) => ({
+          ...p,
+          rank: idx + 1,
+          wasCorrect: p.currentAnswer === correctAnswer,
+          pointsEarned: p.currentAnswer === correctAnswer ? 
+            (currentQuestion.zoomLevels.find(z => z.level === p.answeredAtZoom)?.points || 0) : 0,
+        }))}
+        correctAnswer={correctAnswer}
+        roundNumber={currentRound}
+        onNextRound={handleNextRound}
+      />
+    );
+  }
+
+  if (phase === 'finished') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-game-celebration/20 via-background to-primary/20 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-4xl"
+        >
+          <div className="bg-card border-2 border-card-border rounded-2xl p-8 text-center">
+            <h1 className="text-5xl font-display font-bold mb-8 bg-gradient-to-r from-primary to-game-celebration bg-clip-text text-transparent">
+              Oyun Bitti! 🎉
+            </h1>
+            <Leaderboard players={players.map((p, idx) => ({ ...p, rank: idx + 1 }))} />
+            <div className="mt-8">
+              <p className="text-muted-foreground text-lg">
+                Oyun Kodu: <span className="font-mono font-bold">{gameCode}</span>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Playing phase
+  const currentZoomData = currentQuestion?.zoomLevels.find(z => z.level === currentZoomLevel);
+  const answers = currentQuestion?.options.map((opt, idx) => ({
+    id: String(idx),
+    text: opt,
+    letter: ['A', 'B', 'C', 'D'][idx] as 'A' | 'B' | 'C' | 'D',
+  })) || [];
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
-        {/* Header */}
         <GameHeader
-          currentRound={MOCK_GAME_DATA.currentRound}
-          totalRounds={MOCK_GAME_DATA.totalRounds}
-          gameCode={MOCK_GAME_DATA.gameCode}
+          currentRound={currentRound}
+          totalRounds={totalRounds}
+          gameCode={gameCode}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Game Area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Photo */}
             <PhotoDisplay
-              imageUrl={MOCK_GAME_DATA.imageUrl}
-              currentZoomLevel={zoomLevel}
-              maxZoomLevel={MOCK_GAME_DATA.maxZoomLevel}
-              points={MOCK_GAME_DATA.points}
+              imageUrl={currentZoomData?.imageUrl || currentQuestion?.imageUrl || ''}
+              currentZoomLevel={currentZoomLevel}
+              maxZoomLevel={4}
+              points={currentQuestion?.zoomLevels.map(z => z.points).reverse() || []}
             />
 
-            {/* Answers */}
             <div className="bg-card border-2 border-card-border rounded-lg p-6">
               <h3 className="text-2xl font-display mb-4">Cevap Seçenekleri</h3>
               <AnswerGrid
-                answers={MOCK_GAME_DATA.answers}
-                correctAnswer={showResults ? MOCK_GAME_DATA.correctAnswer : undefined}
-                showResults={showResults}
+                answers={answers}
                 variant="host"
                 disabled
               />
             </div>
 
-            {/* Host Controls */}
             <div className="flex gap-4">
               <Button
-                data-testid="button-next-zoom"
-                onClick={handleNextZoom}
-                disabled={zoomLevel >= MOCK_GAME_DATA.maxZoomLevel}
+                data-testid="button-decrease-zoom"
+                onClick={handleDecreaseZoom}
+                disabled={currentZoomLevel <= 1}
                 className="flex-1 h-14 text-lg font-display"
                 variant="default"
               >
-                <ChevronRight className="w-5 h-5 mr-2" />
-                Sonraki Yakınlaştırma ({zoomLevel}/{MOCK_GAME_DATA.maxZoomLevel})
-              </Button>
-              <Button
-                data-testid="button-show-results"
-                onClick={handleShowResults}
-                disabled={showResults}
-                className="flex-1 h-14 text-lg font-display bg-game-correct hover:bg-game-correct/90"
-              >
-                Sonuçları Göster
+                <ZoomIn className="w-5 h-5 mr-2" />
+                Uzaklaştır (Seviye {currentZoomLevel}/4)
               </Button>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Player Status */}
             <div className="bg-card border-2 border-card-border rounded-lg p-6">
               <PlayerLobby
-                players={MOCK_GAME_DATA.players}
-                totalPlayers={MOCK_GAME_DATA.players.length}
+                players={players}
+                totalPlayers={players.length}
                 answeredCount={answeredCount}
                 showAnswerProgress={true}
               />
             </div>
 
-            {/* Leaderboard */}
             <div className="bg-card border-2 border-card-border rounded-lg p-6">
-              <Leaderboard players={MOCK_GAME_DATA.players} compact />
+              <Leaderboard players={players.map((p, idx) => ({ ...p, rank: idx + 1 }))} compact />
             </div>
           </div>
         </div>
