@@ -1,15 +1,17 @@
 import { z } from "zod";
 
 // Question schema - her soru birden fazla zoom level içerir
+// Seviye 4 = En yakın çekim (en anlaşılmaz) = EN FAZLA PUAN
+// Seviye 1 = En uzak çekim (en anlaşılır) = EN AZ PUAN
 export const questionSchema = z.object({
   id: z.string(),
-  imageUrl: z.string(),
+  imageUrl: z.string(), // Ana fotoğraf (referans için)
   correctAnswer: z.string(),
   options: z.array(z.string()),
   zoomLevels: z.array(z.object({
-    level: z.number(), // 4 = en yakın (max puan), 1 = en uzak (min puan)
-    imageUrl: z.string(),
-    points: z.number(),
+    level: z.number(), // 4 = en yakın/anlaşılmaz (max puan), 1 = en uzak/anlaşılır (min puan)
+    imageUrl: z.string(), // Bu seviye için yüklenmiş fotoğraf
+    points: z.number(), // Bu seviyede kazanılacak puan
   })),
 });
 
@@ -44,7 +46,7 @@ export const gameSchema = z.object({
   players: z.array(playerSchema),
   questions: z.array(questionSchema),
   currentQuestionIndex: z.number().default(0),
-  currentZoomLevel: z.number().default(4), // 4'ten başla (en yakın)
+  currentZoomLevel: z.number().default(4), // 4'ten başla (en yakın = en zor)
   state: gameStateSchema,
   roundStartTime: z.number().optional(),
 });
@@ -128,7 +130,7 @@ export const wsMessageSchema = z.discriminatedUnion("type", [
 
 export type WSMessage = z.infer<typeof wsMessageSchema>;
 
-// Insert schemas (kullanılmıyor şu an ama framework tutarlılığı için)
+// Insert schemas
 export const insertGameSchema = gameSchema.omit({ currentQuestionIndex: true, currentZoomLevel: true, state: true });
 export type InsertGame = z.infer<typeof insertGameSchema>;
 
