@@ -42,7 +42,7 @@ export default function JoinGameForm({ onJoin }: JoinGameFormProps) {
           </div>
           <AnimatedTitle className="text-4xl md:text-5xl font-display font-black" />
           <p className="text-muted-foreground mt-2 text-lg">
-            Yakınlaştırılmış fotoğrafları tahmin et!
+            ins patlamaz amk
           </p>
         </motion.div>
 
