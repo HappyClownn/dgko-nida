@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Leaderboard from "./Leaderboard";
+import FinalLeaderboard from "./FinalLeaderboard";
 import { Trophy, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -96,7 +97,11 @@ export default function ResultsScreen({
           transition={{ delay: 0.3 }}
           className="bg-card border-2 border-card-border rounded-2xl p-8"
         >
-          <Leaderboard players={players} />
+          {isGameOver ? (
+            <FinalLeaderboard players={players} />
+          ) : (
+            <Leaderboard players={players} />
+          )}
         </motion.div>
 
         {/* Next Button */}
