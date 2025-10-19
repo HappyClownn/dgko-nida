@@ -9,30 +9,30 @@ import type { Question } from "./schema";
 export const sampleQuestions: Question[] = [
   {
     id: "1",
-    imageUrl: "https://ibb.co/rKGqyXk4?w=800",
+    imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904566/allahnida4_kkahgj.png",
     correctAnswer: "Galata Kulesi",
-    options: ["Eiffel Kulesi", "Kız Kulesi", "Big Ben", "Galata Kulesi"],
+    options: ["Nida Camide", "Nida Parlarda", "Nida Sınıfta", "Nida Festivalde"],
     zoomLevels: [
       {
         level: 4,
         // En yakın çekim - küçük crop (en anlaşılmaz)
-        imageUrl: "https://ibb.co/rKGqyXk4?w=400&h=400&fit=crop&crop=center",
+        imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904566/allahnida4_kkahgj.png",
         points: 1000,
       },
       {
         level: 3,
-        imageUrl: "https://ibb.co/rKGqyXk4?w=500&h=500&fit=crop&crop=center",
+        imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904566/allahnida3_guzclb.png",
         points: 750,
       },
       {
         level: 2,
-        imageUrl: "https://ibb.co/rKGqyXk4?w=600&h=600&fit=crop&crop=center",
+        imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904564/allahnida2_ervzjz.png",
         points: 500,
       },
       {
         level: 1,
         // En uzak - tam fotoğraf (en anlaşılır)
-        imageUrl: "https://ibb.co/rKGqyXk4?w=800",
+        imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904559/allahnida1_yoxcqk.jpg",
         points: 250,
       },
     ],
