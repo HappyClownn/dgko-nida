@@ -8,8 +8,8 @@ interface PhotoDisplayProps {
   points: number[];
 }
 
-const zoomScales = [3, 2.2, 1.6, 1.2, 1];
-const blurLevels = [20, 12, 6, 2, 0];
+const zoomScales = [1, 1, 1, 1, 1];
+const blurLevels = [0, 4, 4, 2, 0];
 
 export default function PhotoDisplay({
   imageUrl,
@@ -65,7 +65,7 @@ export default function PhotoDisplay({
         <motion.div
           key={currentZoomLevel}
           className="w-full h-full"
-          initial={{ scale: scale * 1.1, filter: `blur(${blur + 5}px)` }}
+          initial={{ scale: scale * 1.1, filter: `blur(${blur + 0}px)` }}
           animate={{ scale, filter: `blur(${blur}px)` }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
