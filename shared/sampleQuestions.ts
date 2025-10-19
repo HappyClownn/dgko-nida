@@ -10,7 +10,7 @@ export const sampleQuestions: Question[] = [
   {
     id: "1",
     imageUrl: "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904566/allahnida4_kkahgj.png",
-    correctAnswer: "Galata Kulesi",
+    correctAnswer: "Nida Camide",
     options: ["Nida Camide", "Nida Parlarda", "Nida Sınıfta", "Nida Festivalde"],
     zoomLevels: [
       {
