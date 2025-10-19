@@ -184,19 +184,19 @@ export const sampleQuestions: Question[] = [
       {
         level: 3,
         imageUrl:
-          "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=500&h=500&fit=crop&crop=center",
+          "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904465/izmir3_izd9p6.png",
         points: 750,
       },
       {
         level: 2,
         imageUrl:
-          "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&h=600&fit=crop&crop=center",
+          "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904468/izmir2_ctxh2u.png",
         points: 500,
       },
       {
         level: 1,
         imageUrl:
-          "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800",
+          "https://res.cloudinary.com/djggnfcxq/image/upload/v1760904463/izmir1_an5oom.jpg",
         points: 250,
       },
     ],
